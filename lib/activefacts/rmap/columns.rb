@@ -159,7 +159,7 @@ module ActiveFacts
         # Add a role value constraint
         # REVISIT: Can add join-role-value-constraints here, if we ever provide a way to define them
         if references[-1].to_role && references[-1].to_role.role_value_constraint
-          constraints << references[-1].to_role.role_value_constraint
+          constraints << references[-1].to_role.base_role.role_value_constraint
         end
 
         vt = references[-1].is_self_value ? references[-1].from : references[-1].to
