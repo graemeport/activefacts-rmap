@@ -53,8 +53,8 @@ module ActiveFacts
 	  return true if type.name =~ /^Auto/ || type.transaction_phase
 	  type = type.supertype
 	end
+	false
       end
-      false
     end
 
     class EntityType < DomainObjectType
@@ -87,7 +87,7 @@ module ActiveFacts
 
         # Subtypes may be partitioned or separate, in which case they're definitely tables.
         # Otherwise, if their identification is inherited from a supertype, they're definitely absorbed.
-        # If theey have separate identification, it might absorb them.
+        # If they have separate identification, it might absorb them.
         if (!supertypes.empty?)
           as_ti = all_supertype_inheritance.detect{|ti| ti.assimilation}
           @is_table = as_ti != nil
@@ -274,27 +274,21 @@ module ActiveFacts
                     object_type.references_from.reject{|ref|
                       pi_roles.include?(ref.to_role)
                     }
-                  trace :absorption, "#{object_type.name} has #{non_identifying_refs_from.size} non-identifying functional roles"
+                  trace :absorption, "#{object_type.name} has #{non_identifying_refs_from.size} non-identifying functional roles" do
+		    non_identifying_refs_from.each do |ref|
+		      trace :absorption, "#{ref.inspect}"
+		    end
+		  end
 
-=begin
-                  # This is kinda arbitrary. We need a policy for evaluating optional flips, so we can decide if they "improve" things.
-                  # The flipping that occurs below always eliminates a table by absorption, but this doesn't.
-
-                  # If all non-identifying functional roles are one-to-ones that can be flipped, do that:
-                  if non_identifying_refs_from.all? { |ref| ref.role_type == :one_one && (ref.to.is_table || ref.to.tentative) }
-                    trace :absorption, "Flipping references from #{object_type.name}" do
-                      non_identifying_refs_from.each do |ref|
-                        trace :absorption, "Flipping #{ref}"
-                        ref.flip
-                      end
-                    end
-                    non_identifying_refs_from = []
-                  end
-=end
+		  trace :absorption, "#{object_type.name} has #{object_type.references_to.size} references to it:" do
+		    object_type.references_to.each do |ref|
+		      trace :absorption, ref.inspect
+		    end
+		  end if object_type.references_to.size > 1
 
                   if object_type.references_to.size > 1 and
                       non_identifying_refs_from.size > 0
-                    trace :absorption, "#{object_type.name} has non-identifying functional dependencies so 3NF requires it be a table"
+                    trace :absorption, "#{object_type.name} has #{non_identifying_refs_from.size} non-identifying functional dependencies and #{object_type.references_to.size} absorption paths so 3NF requires it be a table"
                     object_type.definitely_table
                     next object_type
                   end
@@ -303,7 +297,8 @@ module ActiveFacts
                     (
                       non_identifying_refs_from.reject do |ref|
                         !ref.to or ref.to.absorbed_via == ref
-                      end+object_type.references_to
+                      end +
+		      object_type.references_to
                     ).reject do |ref|
                       next true if !ref.to.is_table or !ref.is_one_to_one
 
@@ -318,21 +313,18 @@ module ActiveFacts
 
                   # If this object can be fully absorbed, do that (might require flipping some references)
                   if absorption_paths.size > 0
-                    trace :absorption, "#{object_type.name} is fully absorbed through #{absorption_paths.inspect}"
-                    absorption_paths.each do |ref|
-                      trace :absorption, "Flipping #{ref} so #{object_type.name} can be absorbed"
-                      ref.flip if object_type == ref.from
-                    end
+                    trace :absorption, "#{object_type.name} is fully absorbed through #{absorption_paths.inspect}" do
+		      absorption_paths.each do |ref|
+			flip = object_type == ref.from
+			ref.flip if flip
+			trace :absorption, "#{object_type.name} is FULLY ABSORBED via {ref}#{flip ? ' (flipped)' : ''}"
+		      end
+		    end
                     object_type.definitely_not_table
                     next object_type
                   end
 
                   if non_identifying_refs_from.size == 0
-		    # REVISIT: This allows absorption along a non-mandatory role of a objectified fact type
-		    # and object_type.references_to.all?{|ref| ref.is_mandatory }
-#                    and (!object_type.is_a?(EntityType) ||
-#                      # REVISIT: The roles may be collectively but not individually mandatory.
-#                      object_type.references_to.detect { |ref| !ref.from_role || ref.from_role.is_mandatory })
                     trace :absorption, "#{object_type.name} is fully absorbed in #{object_type.references_to.size} places: #{object_type.references_to.map{|ref| ref.from.name}*", "}"
                     object_type.definitely_not_table
                     next object_type
