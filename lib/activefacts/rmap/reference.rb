@@ -177,6 +177,7 @@ module ActiveFacts
         # Flip the reference
         @to, @from = @from, @to
         @to_role, @from_role = @from_role, @to_role
+	trace :references, "Mirror #{self.inspect} absorbs #{@to.name}" if @to.absorbed_via == self
         self
       end
 
@@ -330,7 +331,7 @@ module ActiveFacts
           else
             r = ActiveFacts::RMap::Reference.new(self, role)
             r.to.absorbed_via = r
-            trace :references, "supertype #{name} absorbs subtype #{r.to.name}"
+            trace :references, "Supertype #{name} absorbs subtype #{r.to.name}"
             r.tabulate
           end
 
