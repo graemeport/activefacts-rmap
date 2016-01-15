@@ -223,7 +223,7 @@ module ActiveFacts
 	start_role =
 	  if objectified
 	    target = reverse ? to : from
-	    [to_role, from_role, f.all_role[0]].compact.detect{|role| role.object_type == target}
+	    [to_role, from_role, f.all_role_in_order[0]].compact.detect{|role| role.object_type == target}
 	  else
 	    reverse ? to_role : from_role
 	  end
