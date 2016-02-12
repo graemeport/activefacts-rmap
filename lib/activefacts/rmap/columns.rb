@@ -68,69 +68,73 @@ module ActiveFacts
 
       def self.name(refs, separator = "")
         last_names = []
-        names = refs.
-          inject([]) do |a, ref|
+	name_array = nil
+	trace :columns, "Building column name from #{refs.inspect}" do
+	  names = refs.
+	    inject([]) do |a, ref|
 
-            # Skip any object after the first which is identified by this reference
-            if ref != refs[0] and
-                !ref.fact_type.is_a?(ActiveFacts::Metamodel::TypeInheritance) and
-                ref.to and
-                ref.to.is_a?(ActiveFacts::Metamodel::EntityType) and
-                (role_ref = ref.to.preferred_identifier.role_sequence.all_role_ref.single) and
-                role_ref.role == ref.from_role
-              trace :columns, "Skipping #{ref}, identifies non-initial object"
-              next a
-            end
+	      # Skip any object after the first which is identified by this reference
+	      if ref != refs[0] and
+		  !ref.fact_type.is_a?(ActiveFacts::Metamodel::TypeInheritance) and
+		  ref.to and
+		  ref.to.is_a?(ActiveFacts::Metamodel::EntityType) and
+		  (role_ref = ref.to.preferred_identifier.role_sequence.all_role_ref.single) and
+		  role_ref.role == ref.from_role
+		trace :columns, "Skipping #{ref}, identifies non-initial object"
+		next a
+	      end
 
-            names = ref.to_names(ref != refs.last)
+	      names = ref.to_names(ref != refs.last)
 
-            # When traversing type inheritances, keep the subtype name, not the supertype names as well:
-            if a.size > 0 && ref.fact_type.is_a?(ActiveFacts::Metamodel::TypeInheritance)
-              if ref.to != ref.fact_type.subtype  # Did we already have the subtype?
-                trace :columns, "Skipping supertype #{ref}"
-                next a
-              end
-              trace :columns, "Eliding supertype in #{ref}"
-              last_names.size.times { a.pop }   # Remove the last names added
-            elsif last_names.last && last_names.last == names[0][0...last_names.last.size] 
-              # When Xyz is followed by XyzID, truncate that to just ID
-              trace :columns, "truncating repeated #{last_names.last} in #{names[0]}"
-              names[0] = names[0][last_names.last.size..-1]
-              names.shift if names[0] == ''
-            elsif last_names.last == names[0]
-              # Same, but where an underscore split up the words
-              trace :columns, "truncating repeated name in #{names.inspect}"
-              names.shift
-            end
+	      # When traversing type inheritances, keep the subtype name, not the supertype names as well:
+	      if a.size > 0 && ref.fact_type.is_a?(ActiveFacts::Metamodel::TypeInheritance)
+		if ref.to != ref.fact_type.subtype  # Did we already have the subtype?
+		  trace :columns, "Skipping supertype #{ref}"
+		  next a
+		end
+		trace :columns, "Eliding supertype in #{ref}"
+		last_names.size.times { a.pop }   # Remove the last names added
+	      elsif last_names.last && last_names.last == names[0][0...last_names.last.size] 
+		# When Xyz is followed by XyzID, truncate that to just ID
+		trace :columns, "truncating repeated #{last_names.last} in #{names[0]}"
+		names[0] = names[0][last_names.last.size..-1]
+		names.shift if names[0] == ''
+	      elsif last_names.last == names[0]
+		# Same, but where an underscore split up the words
+		trace :columns, "truncating repeated name in #{names.inspect}"
+		names.shift
+	      end
 
-            # If the reference is to the single identifying role of the object_type making the reference,
-            # strip the object_type name from the start of the reference role
-            if a.size > 0 and
-                (et = ref.from).is_a?(ActiveFacts::Metamodel::EntityType) and
-                # This instead of the next 2 would apply to all identifying roles, but breaks some examples:
-                # (role_ref = et.preferred_identifier.role_sequence.all_role_ref.detect{|rr| rr.role == ref.to_role}) and
-                (role_ref = et.preferred_identifier.role_sequence.all_role_ref.single) and
-                role_ref.role == ref.to_role and
-                names[0][0...et.name.size].downcase == et.name.downcase
+	      # If the reference is to the single identifying role of the object_type making the reference,
+	      # strip the object_type name from the start of the reference role
+	      if a.size > 0 and
+		  (et = ref.from).is_a?(ActiveFacts::Metamodel::EntityType) and
+		  # This instead of the next 2 would apply to all identifying roles, but breaks some examples:
+		  # (role_ref = et.preferred_identifier.role_sequence.all_role_ref.detect{|rr| rr.role == ref.to_role}) and
+		  (role_ref = et.preferred_identifier.role_sequence.all_role_ref.single) and
+		  role_ref.role == ref.to_role and
+		  names[0][0...et.name.size].downcase == et.name.downcase
 
-              trace :columns, "truncating transitive identifying role #{names.inspect}"
-              names[0] = names[0][et.name.size..-1]
-              names.shift if names[0] == ""
-            end
+		trace :columns, "truncating transitive identifying role #{names.inspect}"
+		names[0] = names[0][et.name.size..-1]
+		names.shift if names[0] == ""
+	      end
 
-            last_names = names
+	      last_names = names
 
-            a += names
-            a
-          end.elide_repeated_subsequences { |a, b|
-            if a.is_a?(Array)
-              a.map{|e| e.downcase} == b.map{|e| e.downcase}
-            else
-              a.downcase == b.downcase
-            end
-          }
+	      a += names
+	      a
+	    end.elide_repeated_subsequences { |a, b|
+	      if a.is_a?(Array)
+		a.map{|e| e.downcase} == b.map{|e| e.downcase}
+	      else
+		a.downcase == b.downcase
+	      end
+	    }
 
-        name_array = names.map{|n| n.sub(/^[a-z]/){|s| s.upcase}}
+	  name_array = names.map{|n| n.sub(/^[a-z]/){|s| s.upcase}}
+	  trace :columns, "column name is #{name_array*'.'}"
+	end
         separator ? name_array * separator : name_array
       end
 

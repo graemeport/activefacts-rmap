@@ -296,10 +296,7 @@ module ActiveFacts
           # It's possible that this role is in an implicit or derived fact type. Skip it if so.
           next if role.fact_type.is_a?(LinkFactType) or
 	    # REVISIT: dafuq? Is this looking for a constraint over a derivation? This looks wrong.
-            role.fact_type.preferred_reading.role_sequence.all_role_ref.to_a[0].play or
-	    # This is not yet actually set, and wouldn't handle constraint derivations anyhow:
-	    role.variable_as_projection
-          
+            role.fact_type.preferred_reading.role_sequence.all_role_ref.to_a[0].play
           populate_reference role
         end
       end

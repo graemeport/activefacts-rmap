@@ -45,16 +45,6 @@ module ActiveFacts
 
         @is_table
       end
-
-      # Is this ValueType auto-assigned either at assert or on first save to the database?
-      def is_auto_assigned
-        type = self
-	while type
-	  return true if type.name =~ /^Auto/ || type.transaction_phase
-	  type = type.supertype
-	end
-	false
-      end
     end
 
     class EntityType < DomainObjectType
