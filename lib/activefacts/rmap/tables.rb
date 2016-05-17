@@ -140,7 +140,7 @@ module ActiveFacts
                 (rr = c.role_sequence.all_role_ref.single) and
                 rr.role == self
             end
-	# REVISIT: check mapping pragmas, e.g. by to_1.concept.all_concept_annotation.detect{|ca| ca.mapping_annotation == 'separate'}
+        # REVISIT: check mapping pragmas, e.g. by to_1.concept.all_concept_annotation.detect{|ca| ca.mapping_annotation == 'separate'}
 
         if fact_type.entity_type
           # This is a role in an objectified fact type
@@ -249,10 +249,10 @@ module ActiveFacts
                   pi_ref = nil
                   if pi_roles.size == 1 and
                     object_type.references_to.detect do |ref|
-		      if ref.from_role == first_pi_role and ref.from.is_a?(EntityType) # and ref.is_mandatory # REVISIT
-			pi_ref = ref
-		      end
-		    end
+                      if ref.from_role == first_pi_role and ref.from.is_a?(EntityType) # and ref.is_mandatory # REVISIT
+                        pi_ref = ref
+                      end
+                    end
 
                     trace :absorption, "#{object_type.name} is fully absorbed along its sole reference path into entity type #{pi_ref.from.name}"
                     object_type.definitely_not_table
@@ -265,16 +265,16 @@ module ActiveFacts
                       pi_roles.include?(ref.to_role)
                     }
                   trace :absorption, "#{object_type.name} has #{non_identifying_refs_from.size} non-identifying functional roles" do
-		    non_identifying_refs_from.each do |ref|
-		      trace :absorption, "#{ref.inspect}"
-		    end
-		  end
+                    non_identifying_refs_from.each do |ref|
+                      trace :absorption, "#{ref.inspect}"
+                    end
+                  end
 
-		  trace :absorption, "#{object_type.name} has #{object_type.references_to.size} references to it:" do
-		    object_type.references_to.each do |ref|
-		      trace :absorption, ref.inspect
-		    end
-		  end if object_type.references_to.size > 1
+                  trace :absorption, "#{object_type.name} has #{object_type.references_to.size} references to it:" do
+                    object_type.references_to.each do |ref|
+                      trace :absorption, ref.inspect
+                    end
+                  end if object_type.references_to.size > 1
 
                   if object_type.references_to.size > 1 and
                       non_identifying_refs_from.size > 0
@@ -288,7 +288,7 @@ module ActiveFacts
                       non_identifying_refs_from.reject do |ref|
                         !ref.to or ref.to.absorbed_via == ref
                       end +
-		      object_type.references_to
+                      object_type.references_to
                     ).reject do |ref|
                       next true if !ref.to.is_table or !ref.is_one_to_one
 
@@ -304,12 +304,12 @@ module ActiveFacts
                   # If this object can be fully absorbed, do that (might require flipping some references)
                   if absorption_paths.size > 0
                     trace :absorption, "#{object_type.name} is fully absorbed through #{absorption_paths.inspect}" do
-		      absorption_paths.each do |ref|
-			flip = object_type == ref.from
-			ref.flip if flip
-			trace :absorption, "#{object_type.name} is FULLY ABSORBED via {ref}#{flip ? ' (flipped)' : ''}"
-		      end
-		    end
+                      absorption_paths.each do |ref|
+                        flip = object_type == ref.from
+                        ref.flip if flip
+                        trace :absorption, "#{object_type.name} is FULLY ABSORBED via {ref}#{flip ? ' (flipped)' : ''}"
+                      end
+                    end
                     object_type.definitely_not_table
                     next object_type
                   end

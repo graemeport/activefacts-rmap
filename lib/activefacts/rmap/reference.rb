@@ -74,9 +74,9 @@ module ActiveFacts
 
       # Is this Reference covered by a mandatory constraint (implicitly or explicitly)
       def is_mandatory
-	!is_unary &&
-	  (!@from_role ||        # All phantom roles of fact types are mandatory
-	    @from_role.is_mandatory)
+        !is_unary &&
+          (!@from_role ||        # All phantom roles of fact types are mandatory
+            @from_role.is_mandatory)
       end
 
       # Is this Reference from a unary Role?
@@ -177,7 +177,7 @@ module ActiveFacts
         # Flip the reference
         @to, @from = @from, @to
         @to_role, @from_role = @from_role, @to_role
-	trace :references, "Mirror #{self.inspect} absorbs #{@to.name}" if @to.absorbed_via == self
+        trace :references, "Mirror #{self.inspect} absorbs #{@to.name}" if @to.absorbed_via == self
         self
       end
 
@@ -213,23 +213,23 @@ module ActiveFacts
       end
 
       def verbalised_path reverse = false
-	return "#{from.name} Value" if is_self_value
-	objectified = fact_type.entity_type 
-	f =	# Switch to the Link Fact Type if we're traversing an objectification
-	  (to_role && to_role.link_fact_type) ||
-	  (from_role && from_role.link_fact_type) ||
-	  fact_type
+        return "#{from.name} Value" if is_self_value
+        objectified = fact_type.entity_type 
+        f =     # Switch to the Link Fact Type if we're traversing an objectification
+          (to_role && to_role.link_fact_type) ||
+          (from_role && from_role.link_fact_type) ||
+          fact_type
 
-	start_role =
-	  if objectified
-	    target = reverse ? to : from
-	    [to_role, from_role, f.all_role_in_order[0]].compact.detect{|role| role.object_type == target}
-	  else
-	    reverse ? to_role : from_role
-	  end
-	reading = f.reading_preferably_starting_with_role(start_role)
-	(is_mandatory || is_unary ? '' : 'maybe ') +
-	  reading.expand
+        start_role =
+          if objectified
+            target = reverse ? to : from
+            [to_role, from_role, f.all_role_in_order[0]].compact.detect{|role| role.object_type == target}
+          else
+            reverse ? to_role : from_role
+          end
+        reading = f.reading_preferably_starting_with_role(start_role)
+        (is_mandatory || is_unary ? '' : 'maybe ') +
+          reading.expand
       end
 
       def inspect #:nodoc:
@@ -295,7 +295,7 @@ module ActiveFacts
         all_role.each do |role|
           # It's possible that this role is in an implicit or derived fact type. Skip it if so.
           next if role.fact_type.is_a?(LinkFactType) or
-	    # REVISIT: dafuq? Is this looking for a constraint over a derivation? This looks wrong.
+            # REVISIT: dafuq? Is this looking for a constraint over a derivation? This looks wrong.
             role.fact_type.preferred_reading.role_sequence.all_role_ref.to_a[0].play
           populate_reference role
         end
@@ -322,7 +322,7 @@ module ActiveFacts
         when :supertype   # A subtype absorbs a reference to its supertype when separate, or all when partitioned
           # REVISIT: Or when partitioned
           raise "Internal error, expected TypeInheritance" unless role.fact_type.is_a?(ActiveFacts::Metamodel::TypeInheritance)
-	  counterpart_role = (role.fact_type.all_role.to_a-[role])[0]
+          counterpart_role = (role.fact_type.all_role.to_a-[role])[0]
           if role.fact_type.assimilation or counterpart_role.object_type.is_separate
             trace :references, "supertype #{name} doesn't absorb a reference to separate subtype #{role.fact_type.subtype.name}"
           else
@@ -382,7 +382,7 @@ module ActiveFacts
             r.tabulate
           end
         else
-	  # REVISIT: Should we implicitly objectify this fact type here and add a spanning UC?
+          # REVISIT: Should we implicitly objectify this fact type here and add a spanning UC?
           raise "Role #{role.object_type.name} in '#{role.fact_type.default_reading}' lacks a uniqueness constraint"
         end
       end
