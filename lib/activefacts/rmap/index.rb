@@ -69,13 +69,13 @@ module ActiveFacts
       end
 
       def to_s  #:nodoc:
-	if @uniqueness_constraint
-	  name = @uniqueness_constraint.name
-	  preferred = @uniqueness_constraint.is_preferred_identifier ? " (preferred)" : ""
-	else
-	  name = "#{@on.name}IsUnique"
-	  preferred = !@on.injected_surrogate_role ? " (preferred)" : ""
-	end
+        if @uniqueness_constraint
+          name = @uniqueness_constraint.name
+          preferred = @uniqueness_constraint.is_preferred_identifier ? " (preferred)" : ""
+        else
+          name = "#{@on.name}IsUnique"
+          preferred = !@on.injected_surrogate_role ? " (preferred)" : ""
+        end
         colnames = @columns.map(&:name)*", "
         "Index #{name} on #{@on.name} over #{@over.name}(#{colnames})#{preferred}"
       end
@@ -85,26 +85,26 @@ module ActiveFacts
   module Metamodel    #:nodoc:
     class EntityType
       def self_index
-	nil
+        nil
       end
     end
 
     class ValueType
       def self_index
-	ActiveFacts::RMap::Index.new(
-	  nil,	  # The implied uniqueness constraint is not created
-	  self,	  # ValueType being indexed
-	  self,	  # Absorbed object being indexed
-	  columns.select{|c| c.references[0].is_self_value},
-	  injected_surrogate_role ? false : true
-	)
+        ActiveFacts::RMap::Index.new(
+          nil,    # The implied uniqueness constraint is not created
+          self,   # ValueType being indexed
+          self,   # Absorbed object being indexed
+          columns.select{|c| c.references[0].is_self_value},
+          injected_surrogate_role ? false : true
+        )
       end
     end
 
     class ObjectType
       # An array of each Index for this table
       def indices
-	@indices || populate_indices
+        @indices || populate_indices
       end
 
       def clear_indices     #:nodoc:
@@ -146,7 +146,7 @@ module ActiveFacts
                 # trace :index2, "Considering #{ref_path.map(&:to_s)*" and "} yielding columns #{all_column_by_ref_path[ref_path].map{|c| c.name('.')}*", "}"
                 ref.to_role.all_role_ref.each do |role_ref|
                   all_pcs = role_ref.role_sequence.all_presence_constraint
-		  # puts "pcs over #{ref_path.map{|r| r.to_names}.flatten*'.'}: #{role_ref.role_sequence.all_presence_constraint.map(&:describe)*"; "}" if all_pcs.size > 0
+                  # puts "pcs over #{ref_path.map{|r| r.to_names}.flatten*'.'}: #{role_ref.role_sequence.all_presence_constraint.map(&:describe)*"; "}" if all_pcs.size > 0
                   pcs = all_pcs.
                     reject do |pc|
                       !pc.max_frequency or      # No maximum freq; cannot be a uniqueness constraint
@@ -179,12 +179,12 @@ module ActiveFacts
             over = columns[0].references[absorption_level].from
 
             # Absorption through a one-to-one forms a UC that we don't need to enforce using an index:
-	    if over != self and
+            if over != self and
               over.absorbed_via == columns[0].references[absorption_level-1] and
               (rr = uc.role_sequence.all_role_ref.single) and
               over.absorbed_via.fact_type.all_role.include?(rr.role)
-	      next nil
-	    end
+              next nil
+            end
 
             index = ActiveFacts::RMap::Index.new(
               uc,
@@ -202,9 +202,9 @@ module ActiveFacts
             index.columns.map(&:name)+['', index.over.name]
           end
         end
-	si = self_index
-	@indices.unshift(si) if si
-	@indices
+        si = self_index
+        @indices.unshift(si) if si
+        @indices
       end
 
     end
